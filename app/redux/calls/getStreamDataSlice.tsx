@@ -20,21 +20,21 @@ export interface getStreamDataStateType{
   client: StreamVideoClient| null,
   user: User|null,
 }
-class VideoStream{
-  private data: GetStreamDataReturnType = {
-    calls: [],
-  upcomingCalls: [],
-  endedCalls: [],
-  client:null,
-  user: null,
-  }
-  constructor(data: GetStreamDataReturnType){
-    this.data = data
-  }
-  getData=()=>{
-    return this.data
-  }
-}
+// class VideoStream{
+//   private data: GetStreamDataReturnType = {
+//     calls: [],
+//   upcomingCalls: [],
+//   endedCalls: [],
+//   client:null,
+//   user: null,
+//   }
+//   constructor(data: GetStreamDataReturnType){
+//     this.data = data
+//   }
+//   getData=()=>{
+//     return this.data
+//   }
+// }
 const initialState:getStreamDataStateType= {
   calls: [],
   upcomingCalls: [],
@@ -73,8 +73,8 @@ const client = new StreamVideoClient({apiKey, user, tokenProvider});
     return startsAt && new Date(startsAt) > now
   })
  
-  const videoStream = new VideoStream({calls, client, user, upcomingCalls, endedCalls}) ;
-  return videoStream.getData()
+return {calls, client, user, upcomingCalls, endedCalls}
+  
 })
 const getStreamDataSlice = createSlice({
   name: 'getStreamData',
@@ -82,13 +82,13 @@ const getStreamDataSlice = createSlice({
   extraReducers: builder => {
     builder.addCase(fetchGetStreamData.pending, state => {
       state.loading = true;
-    }).addCase(fetchGetStreamData.fulfilled, (state, action:PayloadAction< GetStreamDataReturnType>) => {
+    }).addCase(fetchGetStreamData.fulfilled, (state, action:{payload: GetStreamDataReturnType}) => {
       state.loading = false;
-      state.calls =   action.payload.calls
-      state.client = action.payload.client
-      state.user = action.payload.user
-      state.upcomingCalls = action.payload.upcomingCalls
-      state.endedCalls = action.payload.endedCalls
+      (state.calls as Call[]) =   action.payload.calls;
+      (state.client as StreamVideoClient|null)= action.payload.client;
+      state.user = action.payload.user;
+      (state.upcomingCalls as Call[] )= action.payload.upcomingCalls;
+      (state.endedCalls as Call[]) = action.payload.endedCalls
     }).addCase(fetchGetStreamData.rejected, (state) => {
       state.loading = false;
       state.calls = [];
