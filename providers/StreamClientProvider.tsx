@@ -6,13 +6,14 @@ import { useUser } from '@clerk/nextjs';
 import { tokenProvider } from '@/app/actions/stream.action';
 import Loader from '@/components/Loader';
 
-import { fetchGetStreamData, fetchGetStreamRecordings } from '@/app/redux/calls/getStreamDataSlice';
+import { fetchGetStreamData, fetchGetStreamRecordings, getStreamDataStateType } from '@/app/redux/calls/getStreamDataSlice';
 import { useDispatch, useSelector } from "react-redux";
+import { UnknownAction } from '@reduxjs/toolkit';
 
 const API_KEY = process.env.NEXT_PUBLIC_STREAM_API_KEY;
 
   const StreamVideoProvider = ({ children }: { children: ReactNode }) => {
-    const getStreamData =  useSelector((state)=> state.getStreamData)
+    const getStreamData =  useSelector((state:{getStreamData:getStreamDataStateType})=> state.getStreamData)
     const dispatch = useDispatch()
     const { user } = useUser();
     const streamUser:User = {
@@ -23,7 +24,8 @@ const API_KEY = process.env.NEXT_PUBLIC_STREAM_API_KEY;
     useEffect(()=>{
       console.log(user)
       if(user){
-        dispatch(fetchGetStreamData(streamUser))
+        const action: unknown = fetchGetStreamData(streamUser)
+        dispatch(action as UnknownAction)
       }
       
     },[user])

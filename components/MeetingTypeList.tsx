@@ -14,7 +14,8 @@ import ReactDatePicker from 'react-datepicker';
 import { useToast } from './ui/use-toast';
 import { Input } from './ui/input'; 
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchGetStreamData } from '@/app/redux/calls/getStreamDataSlice';
+import { fetchGetStreamData, getStreamDataStateType } from '@/app/redux/calls/getStreamDataSlice';
+import { UnknownAction } from '@reduxjs/toolkit';
 
 
 const initialValues = {
@@ -34,9 +35,9 @@ const MeetingTypeList = () => {
   const { user } = useUser();
   const { toast } = useToast();
   const dispatch = useDispatch()
-  const streamUser =  useSelector((state)=> state.getStreamData.user)
+  const streamUser =  useSelector((state:{getStreamData:getStreamDataStateType})=> state.getStreamData.user)
   const createMeeting = async () => {
-    if (!client || !user) return;
+    if (!client || !streamUser|| !user) return;
     try {
       if (!values.dateTime) {
         toast({ title: 'Please select a date and time' });
@@ -60,7 +61,9 @@ const MeetingTypeList = () => {
       if (meetingState === 'isInstantMeeting') {
         router.push(`/meeting/${call.id}`);
       }
-      dispatch(fetchGetStreamData(streamUser))
+      
+      const action: unknown = fetchGetStreamData(streamUser)
+      dispatch(action as UnknownAction)
       toast({
         title: 'Meeting Created',
       });
