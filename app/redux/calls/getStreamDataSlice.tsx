@@ -1,8 +1,15 @@
 
-import { Call, CallRecording, StreamVideoClient, User, useStreamVideoClient } from '@stream-io/video-react-sdk';
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { Call, CallRecording, StreamVideoClient, User } from '@stream-io/video-react-sdk';
+import { PayloadAction, createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { tokenProvider } from '@/app/actions/stream.action';
-const initialState:{
+interface GetStreamDataReturnType{
+  calls: Call[],
+  upcomingCalls: Call[],
+  endedCalls: Call[],
+  client: StreamVideoClient| null,
+  user: User|null,
+}
+export interface getStreamDataStateType{
   calls: Call[],
   upcomingCalls: Call[],
   endedCalls: Call[],
@@ -12,7 +19,23 @@ const initialState:{
   recordings: CallRecording[],
   client: StreamVideoClient| null,
   user: User|null,
-} = {
+}
+class VideoStream{
+  private data: GetStreamDataReturnType = {
+    calls: [],
+  upcomingCalls: [],
+  endedCalls: [],
+  client:null,
+  user: null,
+  }
+  constructor(data: GetStreamDataReturnType){
+    this.data = data
+  }
+  getData=()=>{
+    return this.data
+  }
+}
+const initialState:getStreamDataStateType= {
   calls: [],
   upcomingCalls: [],
   endedCalls: [],
@@ -26,7 +49,7 @@ const initialState:{
 export const fetchGetStreamRecordings = createAsyncThunk('calls/fetchGetStreamRecordings', async (calls: Call[])=>{const callData = await Promise.all(calls?.map((meeting) => meeting.queryRecordings()) ?? [])
   const recordings = callData.filter((call) => call.recordings.length > 0).flatMap((call) => call.recordings);
 return recordings})
-export const fetchGetStreamData = createAsyncThunk('calls/fetchGetStreamData', async (user: User)=>{
+export const fetchGetStreamData = createAsyncThunk('calls/fetchGetStreamData', async (user: User):Promise<GetStreamDataReturnType>=>{
   const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY;  
 if(!apiKey) throw Error( "Api key required")
 if (!user) throw Error('Client or user required!');
@@ -50,8 +73,8 @@ const client = new StreamVideoClient({apiKey, user, tokenProvider});
     return startsAt && new Date(startsAt) > now
   })
  
-
-  return {calls, client, user, upcomingCalls, endedCalls};
+  const videoStream = new VideoStream({calls, client, user, upcomingCalls, endedCalls}) ;
+  return videoStream.getData()
 })
 const getStreamDataSlice = createSlice({
   name: 'getStreamData',
@@ -59,12 +82,11 @@ const getStreamDataSlice = createSlice({
   extraReducers: builder => {
     builder.addCase(fetchGetStreamData.pending, state => {
       state.loading = true;
-    }).addCase(fetchGetStreamData.fulfilled, (state, action) => {
+    }).addCase(fetchGetStreamData.fulfilled, (state, action:PayloadAction< GetStreamDataReturnType>) => {
       state.loading = false;
-      state.calls = action.payload.calls
+      state.calls =   action.payload.calls
       state.client = action.payload.client
       state.user = action.payload.user
-      state.recordings= action.payload.recordings
       state.upcomingCalls = action.payload.upcomingCalls
       state.endedCalls = action.payload.endedCalls
     }).addCase(fetchGetStreamData.rejected, (state) => {
@@ -82,7 +104,7 @@ const getStreamDataSlice = createSlice({
       state.recordingsRejected = true
     })
   },
-  
+  reducers: undefined!
 })
   export default getStreamDataSlice.reducer
   export const {updateCallsEnded, updateCallsUpcoming} = getStreamDataSlice.actions

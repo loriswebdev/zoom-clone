@@ -3,16 +3,16 @@
 import { Call, CallRecording } from '@stream-io/video-react-sdk';
 
 import Loader from './Loader';
-import { useGetCalls } from '@/hooks/useGetCalls';
+
 import MeetingCard from './MeetingCard';
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
+import { getStreamDataStateType } from '@/app/redux/calls/getStreamDataSlice';
 
 const CallList = ({ type }: { type: 'ended' | 'upcoming' | 'recordings' }) => {
   const router = useRouter();
-  const getStreamData = useSelector((state) => state.getStreamData)
-  const {endedCalls, recordings, upcomingCalls, loading} = getStreamData;
+  const getStreamData = useSelector((state:{getStreamData: getStreamDataStateType| undefined}| undefined) => state?.getStreamData)
+  const {endedCalls, recordings, upcomingCalls, loading} = getStreamData!;
   const getCalls = () => {
     switch (type) {
       case 'ended':
