@@ -33,7 +33,8 @@ const API_KEY = process.env.NEXT_PUBLIC_STREAM_API_KEY;
       
       if(getStreamData.calls.length > 0){
         console.log('here')
-        dispatch(fetchGetStreamRecordings(getStreamData.calls))
+        const action: unknown = fetchGetStreamRecordings(getStreamData.calls)
+        dispatch(action as UnknownAction)
       }
     }, [getStreamData.calls])
    
